@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acme Logistics — Inbound Carrier Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#f4f1ea; --card:#fffdf8; --ink:#14213d; --ink-soft:#56607a;
+    --accent:#d97316; --line:#ddd6c8; --good:#2f7d52; --warn:#c2680c; --bad:#b3261e;
+    --shadow:0 1px 2px rgba(20,33,61,.06),0 8px 24px rgba(20,33,61,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    line-height:1.45;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 1px 1px,rgba(20,33,61,.04) 1px,transparent 0);
+    background-size:22px 22px;
+    padding:0 0 64px;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  header{
+    border-bottom:2px solid var(--ink);margin-bottom:32px;
+    padding:28px 0 18px;
+  }
+  .top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .mark{
+    width:38px;height:38px;border:2px solid var(--ink);border-radius:7px;
+    display:grid;place-items:center;font-weight:700;font-size:18px;
+    background:var(--ink);color:var(--paper);
+  }
+  h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
+  .sub{font-size:12.5px;color:var(--ink-soft);font-weight:500;text-transform:uppercase;letter-spacing:.08em}
+  .live{
+    display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
+    color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;
+  }
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px rgba(47,125,82,.15)}
+
+  .section-label{
+    font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
+    color:var(--ink-soft);margin:0 0 14px;display:flex;align-items:center;gap:10px;
+  }
+  .section-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:36px}
+  .kpi{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+    opacity:0;transform:translateY(8px);animation:rise .5s ease forwards;
+  }
+  .kpi::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:var(--accent)}
+  .kpi:nth-child(1){animation-delay:.04s}.kpi:nth-child(2){animation-delay:.10s}
+  .kpi:nth-child(3){animation-delay:.16s}.kpi:nth-child(4){animation-delay:.22s}
+  .kpi:nth-child(5){animation-delay:.28s}
+  .kpi .label{font-size:11.5px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+  .kpi .val{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1}
+  .kpi .unit{font-size:14px;color:var(--ink-soft);font-weight:500}
+  .kpi .foot{font-size:11.5px;color:var(--ink-soft);margin-top:8px;font-family:'IBM Plex Mono',monospace}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:36px}
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:20px;box-shadow:var(--shadow);
+  }
+  .panel h3{font-size:13px;font-weight:600;margin-bottom:4px}
+  .panel .hint{font-size:11.5px;color:var(--ink-soft);margin-bottom:16px}
+  .chart-box{position:relative;height:230px}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--ink-soft);font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--line);
+  }
+  td{padding:11px 12px;border-bottom:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:12.5px}
+  tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Sans',sans-serif}
+  .pill.booked{background:rgba(47,125,82,.12);color:var(--good)}
+  .pill.no_agreement{background:rgba(194,104,12,.12);color:var(--warn)}
+  .pill.declined{background:rgba(179,38,30,.10);color:var(--bad)}
+  .pill.not_eligible{background:rgba(86,96,122,.12);color:var(--ink-soft)}
+  .pill.positive{color:var(--good)}.pill.neutral{color:var(--ink-soft)}.pill.negative{color:var(--bad)}
+  .empty{text-align:center;color:var(--ink-soft);padding:40px;font-size:13px}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media(max-width:880px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="brand">
+        <div class="mark">A</div>
+        <div>
+          <h1>Acme Logistics · Inbound Carrier Desk</h1>
+          <div class="sub">AI Carrier Sales — Live Operations</div>
+        </div>
+      </div>
+      <div class="live"><span class="dot"></span> LIVE · auto-captured from calls</div>
+    </div>
+  </header>
+
+  <div class="section-label">Operations Snapshot</div>
+  <div class="kpis">
+    <div class="kpi">
+      <div class="label">Total Calls</div>
+      <div class="val">{{ metrics.total_calls }}</div>
+      <div class="foot">inbound carrier calls</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Booking Rate</div>
+      <div class="val">{{ (metrics.booking_rate * 100) | round(1) }}<span class="unit">%</span></div>
+      <div class="foot">calls → booked loads</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Avg Margin Δ</div>
+      <div class="val">{% if metrics.avg_margin_delta is not none %}${{ metrics.avg_margin_delta | round(0) | int }}{% else %}—{% endif %}</div>
+      <div class="foot">agreed vs loadboard</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Avg Rounds</div>
+      <div class="val">{% if metrics.avg_negotiation_rounds is not none %}{{ metrics.avg_negotiation_rounds }}{% else %}—{% endif %}</div>
+      <div class="foot">to reach a decision</div>
+    </div>
+    <div class="kpi">
+      <div class="label">FMCSA Rejected</div>
+      <div class="val">{{ metrics.not_eligible_count }}</div>
+      <div class="foot">ineligible carriers</div>
+    </div>
+  </div>
+
+  <div class="section-label">Breakdown</div>
+  <div class="grid">
+    <div class="panel">
+      <h3>Call Outcomes</h3>
+      <div class="hint">Where each inbound call landed</div>
+      <div class="chart-box"><canvas id="outcomeChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>Carrier Sentiment</h3>
+      <div class="hint">Tone of carriers across all calls</div>
+      <div class="chart-box"><canvas id="sentimentChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-label">Recent Calls</div>
+  <div class="panel">
+    {% if calls %}
+    <table>
+      <thead>
+        <tr><th>Time</th><th>MC #</th><th>Carrier</th><th>Load</th><th>Outcome</th><th>Agreed</th><th>Rounds</th><th>Sentiment</th></tr>
+      </thead>
+      <tbody>
+        {% for c in calls %}
+        <tr>
+          <td>{{ c.created_at }}</td>
+          <td>{{ c.mc_number or "—" }}</td>
+          <td style="font-family:'IBM Plex Sans',sans-serif">{{ c.carrier_name or "—" }}</td>
+          <td>{{ c.load_id or "—" }}</td>
+          <td><span class="pill {{ c.outcome }}">{{ c.outcome.replace("_"," ") }}</span></td>
+          <td>{% if c.agreed_rate %}${{ c.agreed_rate | round(0) | int }}{% else %}—{% endif %}</td>
+          <td>{{ c.negotiation_rounds if c.negotiation_rounds is not none else "—" }}</td>
+          <td><span class="pill {{ c.sentiment or 'neutral' }}">{{ c.sentiment or "—" }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No calls captured yet. Place a test web call and they'll appear here automatically.</div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  const METRICS = {{ metrics | tojson }};
+  const ink = '#14213d', soft = '#56607a';
+  const palette = {
+    booked:'#2f7d52', no_agreement:'#c2680c', declined:'#b3261e', not_eligible:'#9aa3b8',
+    positive:'#2f7d52', neutral:'#9aa3b8', negative:'#b3261e', unknown:'#c9c2b4'
+  };
+  const labelize = k => k.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+  Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+  Chart.defaults.color = soft;
+
+  function doughnut(id, obj){
+    const keys = Object.keys(obj);
+    const el = document.getElementById(id);
+    if(!keys.length){ el.parentElement.innerHTML = '<div class="empty">No data yet</div>'; return; }
+    new Chart(el, {
+      type:'doughnut',
+      data:{ labels: keys.map(labelize),
+        datasets:[{ data: keys.map(k=>obj[k]),
+          backgroundColor: keys.map(k=>palette[k]||'#c9c2b4'), borderColor:'#fffdf8', borderWidth:3 }]},
+      options:{ cutout:'62%', plugins:{ legend:{ position:'right', labels:{ boxWidth:12, padding:14, font:{size:12.5} } } } }
+    });
+  }
+  doughnut('outcomeChart', METRICS.outcomes || {});
+  doughnut('sentimentChart', METRICS.sentiment || {});
+</script>
+</body>
+</html>
