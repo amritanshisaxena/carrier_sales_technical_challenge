@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class Load(BaseModel):
@@ -28,6 +28,20 @@ class CallRecord(BaseModel):
     negotiation_rounds: Optional[int] = None
     sentiment: Optional[str] = None
     transcript: Optional[str] = None
+
+    @field_validator("agreed_rate", "loadboard_rate", mode="before")
+    @classmethod
+    def parse_nullable_float(cls, v):
+        if v is None or v == "null" or v == "":
+            return None
+        return v
+
+    @field_validator("negotiation_rounds", mode="before")
+    @classmethod
+    def parse_nullable_int(cls, v):
+        if v is None or v == "null" or v == "":
+            return None
+        return v
 
 
 class MetricsResponse(BaseModel):
