@@ -106,6 +106,11 @@ def _expand_location(term: str) -> list[str]:
     variants = [f"%{low}%"]
     if low in STATE_ABBREVS:
         variants.append(f"%, {STATE_ABBREVS[low]}")
+    if ", " in low:
+        city, state = low.rsplit(", ", 1)
+        abbrev = STATE_ABBREVS.get(state)
+        if abbrev:
+            variants.append(f"%{city}%, {abbrev}")
     return variants
 
 

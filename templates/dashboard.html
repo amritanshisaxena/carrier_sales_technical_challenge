@@ -36,151 +36,136 @@
     background-image:radial-gradient(circle at 1px 1px,rgba(20,33,61,.04) 1px,transparent 0);
     background-size:22px 22px;
     padding:0 0 64px;
+    min-width:320px;
   }
   .kpi{opacity:0;transform:translateY(8px);animation:rise .5s ease forwards}
   .kpi:nth-child(1){animation-delay:.04s}.kpi:nth-child(2){animation-delay:.10s}
   .kpi:nth-child(3){animation-delay:.16s}.kpi:nth-child(4){animation-delay:.22s}
   .kpi:nth-child(5){animation-delay:.28s}.kpi:nth-child(6){animation-delay:.34s}
+  .kpi:nth-child(7){animation-delay:.40s}
   .kpi::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:#d97316}
-  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Sans',sans-serif}
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap}
   .pill.booked{background:rgba(47,125,82,.12);color:#2f7d52}
   .pill.no_agreement{background:rgba(194,104,12,.12);color:#c2680c}
   .pill.declined{background:rgba(179,38,30,.10);color:#b3261e}
   .pill.not_eligible{background:rgba(86,96,122,.12);color:#56607a}
   .pill.positive{color:#2f7d52}.pill.neutral{color:#56607a}.pill.negative{color:#b3261e}
-  .chart-box{position:relative;height:230px}
+  .chart-box{position:relative;height:230px;min-height:200px}
   .section-label{
     font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
     color:#56607a;margin:0 0 14px;display:flex;align-items:center;gap:10px;
   }
   .section-label::after{content:"";flex:1;height:1px;background:#ddd6c8}
+  .panel{background:#fffdf8;border:1px solid #ddd6c8;border-radius:12px;padding:20px;box-shadow:0 1px 2px rgba(20,33,61,.06),0 8px 24px rgba(20,33,61,.05)}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;white-space:nowrap}
   @keyframes rise{to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
-<div class="max-w-6xl mx-auto px-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
 
   <!-- Header -->
   <header class="border-b-2 border-ink mb-8 pt-7 pb-4">
-    <div class="flex justify-between items-end flex-wrap gap-3">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
       <div class="flex items-center gap-3.5">
-        <div class="w-10 h-10 border-2 border-ink rounded-lg grid place-items-center font-bold text-lg bg-ink text-paper">A</div>
+        <div class="w-10 h-10 border-2 border-ink rounded-lg grid place-items-center font-bold text-lg bg-ink text-paper shrink-0">A</div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight">Acme Logistics · Inbound Carrier Desk</h1>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight">Acme Logistics · Inbound Carrier Desk</h1>
           <div class="text-xs text-ink-soft font-medium uppercase tracking-widest">AI Carrier Sales — Live Operations</div>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs font-semibold text-ink-soft font-mono">
-        <span class="w-2.5 h-2.5 rounded-full bg-good shadow-[0_0_0_4px_rgba(47,125,82,.15)]"></span> LIVE · auto-captured from calls
+        <span class="w-2.5 h-2.5 rounded-full bg-good shadow-[0_0_0_4px_rgba(47,125,82,.15)]"></span> LIVE
       </div>
     </div>
   </header>
 
   <!-- KPIs -->
   <div class="section-label">Operations Snapshot</div>
-  <div class="grid grid-cols-3 max-md:grid-cols-2 gap-3.5 mb-9">
-    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 mb-9">
+    <div class="kpi panel relative overflow-hidden">
       <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Total Calls</div>
-      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{{ metrics.total_calls }}</div>
+      <div class="font-mono text-2xl sm:text-3xl font-semibold tracking-tight leading-none">{{ metrics.total_calls }}</div>
       <div class="text-[11.5px] text-ink-soft mt-2 font-mono">inbound carrier calls</div>
     </div>
-    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+    <div class="kpi panel relative overflow-hidden">
       <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Booking Rate</div>
-      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{{ (metrics.booking_rate * 100) | round(1) }}<span class="text-sm text-ink-soft font-medium">%</span></div>
-      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">calls &rarr; booked loads</div>
+      <div class="font-mono text-2xl sm:text-3xl font-semibold tracking-tight leading-none">{{ (metrics.booking_rate * 100) | round(1) }}<span class="text-sm text-ink-soft font-medium">%</span></div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">calls to booked loads</div>
     </div>
-    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
-      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Margin &Delta;</div>
-      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_margin_delta is not none %}${{ metrics.avg_margin_delta | round(0) | int }}{% else %}&mdash;{% endif %}</div>
+    <div class="kpi panel relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Margin Delta</div>
+      <div class="font-mono text-2xl sm:text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_margin_delta is not none %}${{ metrics.avg_margin_delta | round(0) | int }}{% else %}—{% endif %}</div>
       <div class="text-[11.5px] text-ink-soft mt-2 font-mono">agreed vs loadboard</div>
     </div>
-    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
-      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Rounds</div>
-      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_negotiation_rounds is not none %}{{ metrics.avg_negotiation_rounds }}{% else %}&mdash;{% endif %}</div>
-      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">to reach a decision</div>
-    </div>
-    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
-      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">FMCSA Rejected</div>
-      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{{ metrics.not_eligible_count }}</div>
-      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">ineligible carriers</div>
-    </div>
-    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+    <div class="kpi panel relative overflow-hidden">
       <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Agreed Rate</div>
-      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_agreed_rate is not none %}${{ metrics.avg_agreed_rate | round(0) | int }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-2xl sm:text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_agreed_rate is not none %}${{ metrics.avg_agreed_rate | round(0) | int }}{% else %}—{% endif %}</div>
       <div class="text-[11.5px] text-ink-soft mt-2 font-mono">on booked loads</div>
     </div>
+    <div class="kpi panel relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Rounds</div>
+      <div class="font-mono text-2xl sm:text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_negotiation_rounds is not none %}{{ metrics.avg_negotiation_rounds }}{% else %}—{% endif %}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">to reach a decision</div>
+    </div>
+    <div class="kpi panel relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">FMCSA Rejected</div>
+      <div class="font-mono text-2xl sm:text-3xl font-semibold tracking-tight leading-none">{{ metrics.not_eligible_count }}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">ineligible carriers</div>
+    </div>
     {% if hr_data and hr_data.avg_duration_display %}
-    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+    <div class="kpi panel relative overflow-hidden">
       <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Call Duration</div>
-      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{{ hr_data.avg_duration_display }}</div>
-      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">from HappyRobot platform</div>
+      <div class="font-mono text-2xl sm:text-3xl font-semibold tracking-tight leading-none">{{ hr_data.avg_duration_display }}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">from HappyRobot</div>
     </div>
     {% endif %}
   </div>
 
-  <!-- Breakdown -->
+  <!-- Primary Charts -->
   <div class="section-label">Breakdown</div>
-  <div class="grid grid-cols-2 max-md:grid-cols-1 gap-5 mb-9">
-    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-9">
+    <div class="panel">
       <h3 class="text-[13px] font-semibold mb-1">Call Outcomes</h3>
       <div class="text-[11.5px] text-ink-soft mb-4">Where each inbound call landed</div>
       <div class="chart-box"><canvas id="outcomeChart"></canvas></div>
     </div>
-    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+    <div class="panel">
       <h3 class="text-[13px] font-semibold mb-1">Carrier Sentiment</h3>
       <div class="text-[11.5px] text-ink-soft mb-4">Tone of carriers across all calls</div>
       <div class="chart-box"><canvas id="sentimentChart"></canvas></div>
     </div>
-  </div>
-
-  <!-- Trends & Patterns -->
-  <div class="section-label">Trends & Patterns</div>
-  <div class="grid grid-cols-2 max-md:grid-cols-1 gap-5 mb-9">
-    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+    <div class="panel">
       <h3 class="text-[13px] font-semibold mb-1">Runs Over Time</h3>
       <div class="text-[11.5px] text-ink-soft mb-4">Daily call volume — last 7 days (HappyRobot)</div>
       <div class="chart-box"><canvas id="runsOverTimeChart"></canvas></div>
     </div>
-    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+    <div class="panel">
       <h3 class="text-[13px] font-semibold mb-1">Why Calls Didn't Book</h3>
       <div class="text-[11.5px] text-ink-soft mb-4">Breakdown of non-booked outcomes</div>
       <div class="chart-box"><canvas id="nonBookedChart"></canvas></div>
-    </div>
-    <div class="bg-card border border-line rounded-xl p-5 shadow-sm col-span-2 max-md:col-span-1">
-      <h3 class="text-[13px] font-semibold mb-1">Pickup Time Patterns</h3>
-      <div class="text-[11.5px] text-ink-soft mb-4">Booking outcome by time of day (Morning 6-11, Afternoon 12-17, Evening 18-23, Night 0-5)</div>
-      <div class="chart-box" style="height:280px"><canvas id="pickupTimeChart"></canvas></div>
-    </div>
-    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
-      <h3 class="text-[13px] font-semibold mb-1">Equipment Type Bookings</h3>
-      <div class="text-[11.5px] text-ink-soft mb-4">Booking success by equipment type</div>
-      <div class="chart-box"><canvas id="equipmentChart"></canvas></div>
-    </div>
-    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
-      <h3 class="text-[13px] font-semibold mb-1">Distance vs Rate</h3>
-      <div class="text-[11.5px] text-ink-soft mb-4">Does distance affect booking?</div>
-      <div class="chart-box"><canvas id="distanceChart"></canvas></div>
     </div>
   </div>
 
   <!-- Recent Calls -->
   <div class="section-label">Recent Calls</div>
-  <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+  <div class="panel mb-9">
     {% if calls %}
     <div class="overflow-x-auto">
-    <table class="w-full border-collapse text-[13px]">
+    <table class="text-[13px]">
       <thead>
         <tr>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Time</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">MC #</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Carrier</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Load</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Outcome</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Agreed</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Rounds</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Sentiment</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Duration</th>
-          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Status</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Time</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">MC #</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Carrier</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Load</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Outcome</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Agreed</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Rounds</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Sentiment</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Duration</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Status</th>
         </tr>
       </thead>
       <tbody>
@@ -205,6 +190,28 @@
     <div class="text-center text-ink-soft py-10 text-[13px]">No calls captured yet. Place a test web call and they'll appear here automatically.</div>
     {% endif %}
   </div>
+
+  <!-- Deep Dive -->
+  <div class="section-label">Deep Dive — Patterns at Scale</div>
+  <div class="text-[12.5px] text-ink-soft mb-5">These charts become more insightful as call volume grows.</div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-9">
+    <div class="panel">
+      <h3 class="text-[13px] font-semibold mb-1">Pickup Time Patterns</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Booking outcome by time of day</div>
+      <div class="chart-box"><canvas id="pickupTimeChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3 class="text-[13px] font-semibold mb-1">Equipment Type Bookings</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Booking success by equipment type</div>
+      <div class="chart-box"><canvas id="equipmentChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3 class="text-[13px] font-semibold mb-1">Distance vs Rate</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Does distance affect booking?</div>
+      <div class="chart-box"><canvas id="distanceChart"></canvas></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -225,7 +232,6 @@
     el.parentElement.innerHTML = '<div class="text-center text-ink-soft py-10 text-[13px]">No data yet</div>';
   }
 
-  // Doughnut helper
   function doughnut(id, obj) {
     const keys = Object.keys(obj);
     if (!keys.length) { noData(id); return; }
@@ -241,7 +247,7 @@
   doughnut('outcomeChart', METRICS.outcomes || {});
   doughnut('sentimentChart', METRICS.sentiment || {});
 
-  // Chart 1: Runs Over Time (from HappyRobot API)
+  // Runs Over Time (HappyRobot API)
   (function() {
     const d = HR_DATA.runs_per_day;
     if (!d || !d.values || !d.values.some(v => v > 0)) { noData('runsOverTimeChart'); return; }
@@ -253,7 +259,7 @@
     });
   })();
 
-  // Chart 2: Non-Booked Reasons
+  // Non-Booked Reasons
   (function() {
     const d = DASHBOARD_DATA.non_booked_reasons;
     const keys = Object.keys(d);
@@ -267,7 +273,7 @@
     });
   })();
 
-  // Chart 3: Pickup Time Patterns (bucketed)
+  // Deep Dive: Pickup Time Patterns
   (function() {
     const d = DASHBOARD_DATA.pickup_time_patterns;
     if (!d || (!d.booked.some(v => v > 0) && !d.not_booked.some(v => v > 0))) { noData('pickupTimeChart'); return; }
@@ -283,7 +289,7 @@
     });
   })();
 
-  // Chart 4: Equipment Type Distribution
+  // Deep Dive: Equipment Type
   (function() {
     const d = DASHBOARD_DATA.equipment_distribution;
     if (!d || !d.labels.length) { noData('equipmentChart'); return; }
@@ -299,7 +305,7 @@
     });
   })();
 
-  // Chart 5: Distance vs Rate Scatter
+  // Deep Dive: Distance vs Rate
   (function() {
     const d = DASHBOARD_DATA.distance_booking;
     if (!d || (!d.booked.length && !d.not_booked.length)) { noData('distanceChart'); return; }
