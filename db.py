@@ -1,15 +1,3 @@
-"""SQLite persistence layer.
-
-Three tables:
-  - loads                : the broker's available freight (seeded from loads.json)
-  - negotiation_sessions : tracks an in-progress negotiation per (mc_number, load_id)
-                           so round-counting is server-side and deterministic
-  - calls                : one row per completed call, written by the post-call webhook
-
-Using sqlite3 from the standard library keeps the dependency surface tiny and the
-whole thing runs in one container with no external database.
-"""
-
 import json
 import sqlite3
 from pathlib import Path
@@ -22,12 +10,11 @@ SEED_FILE = Path(__file__).parent / "loads.json"
 
 def get_conn() -> sqlite3.Connection:
     conn = sqlite3.connect(settings.database_path)
-    conn.row_factory = sqlite3.Row  # lets us access columns by name
+    conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db() -> None:
-    """Create tables if they don't exist, then seed loads once."""
     conn = get_conn()
     cur = conn.cursor()
 
@@ -47,21 +34,6 @@ def init_db() -> None:
             num_of_pieces INTEGER,
             miles REAL,
             dimensions TEXT
-        )
-        """
-    )
-
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS negotiation_sessions (
-            session_key TEXT PRIMARY KEY,   -- mc_number + ":" + load_id
-            mc_number TEXT,
-            load_id TEXT,
-            loadboard_rate REAL,
-            last_broker_offer REAL,
-            round_count INTEGER,
-            status TEXT,                     -- open | accepted | rejected
-            created_at TEXT DEFAULT (datetime('now'))
         )
         """
     )
@@ -136,61 +108,6 @@ def search_loads(
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
-
-
-def get_load(load_id: str) -> Optional[Dict[str, Any]]:
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM loads WHERE load_id = ?", (load_id,))
-    row = cur.fetchone()
-    conn.close()
-    return dict(row) if row else None
-
-
-# ---------- Negotiation sessions ----------
-
-def get_or_create_session(mc_number: str, load_id: str, loadboard_rate: float) -> Dict[str, Any]:
-    key = f"{mc_number}:{load_id}"
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM negotiation_sessions WHERE session_key = ?", (key,))
-    row = cur.fetchone()
-    if row is None:
-        cur.execute(
-            """
-            INSERT INTO negotiation_sessions
-                (session_key, mc_number, load_id, loadboard_rate, last_broker_offer, round_count, status)
-            VALUES (?, ?, ?, ?, ?, 0, 'open')
-            """,
-            (key, mc_number, load_id, loadboard_rate, loadboard_rate),
-        )
-        conn.commit()
-        cur.execute("SELECT * FROM negotiation_sessions WHERE session_key = ?", (key,))
-        row = cur.fetchone()
-    result = dict(row)
-    conn.close()
-    return result
-
-
-def _fetch_session(mc_number: str, load_id: str) -> Optional[Dict[str, Any]]:
-    key = f"{mc_number}:{load_id}"
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM negotiation_sessions WHERE session_key = ?", (key,))
-    row = cur.fetchone()
-    conn.close()
-    return dict(row) if row else None
-
-
-def update_session(session_key: str, last_broker_offer: float, round_count: int, status: str) -> None:
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute(
-        "UPDATE negotiation_sessions SET last_broker_offer = ?, round_count = ?, status = ? WHERE session_key = ?",
-        (last_broker_offer, round_count, status, session_key),
-    )
-    conn.commit()
-    conn.close()
 
 
 # ---------- Calls ----------

@@ -1,10 +1,4 @@
-"""Request and response shapes.
-
-Pydantic models give you automatic validation and clean JSON. They also make the
-auto-generated API docs (at /docs) readable, which is handy in the demo video.
-"""
-
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel
 
 
@@ -24,41 +18,15 @@ class Load(BaseModel):
     dimensions: Optional[str] = None
 
 
-class CarrierVerification(BaseModel):
-    mc_number: str
-    eligible: bool
-    carrier_name: Optional[str] = None
-    reason: str
-    source: str  # "fmcsa" or "mock"
-
-
-class OfferRequest(BaseModel):
-    mc_number: str
-    load_id: str
-    carrier_offer: float
-
-
-class OfferResponse(BaseModel):
-    decision: str          # "accept" | "counter" | "reject"
-    round: int             # which negotiation round this was (1-based)
-    broker_offer: float    # the number the broker is now standing behind
-    message: str           # human-readable line the agent can relay to the carrier
-
-
 class CallRecord(BaseModel):
-    """What the HappyRobot post-call Webhook node POSTs to /calls.
-
-    The platform's AI Extract node + classifiers produce these fields. Everything
-    is optional except outcome, because a call can end at any stage.
-    """
     mc_number: Optional[str] = None
     carrier_name: Optional[str] = None
     load_id: Optional[str] = None
-    outcome: str  # "booked" | "declined" | "no_agreement" | "not_eligible"
+    outcome: str
     agreed_rate: Optional[float] = None
     loadboard_rate: Optional[float] = None
     negotiation_rounds: Optional[int] = None
-    sentiment: Optional[str] = None  # "positive" | "neutral" | "negative"
+    sentiment: Optional[str] = None
     transcript: Optional[str] = None
 
 
@@ -70,5 +38,5 @@ class MetricsResponse(BaseModel):
     avg_negotiation_rounds: Optional[float]
     avg_agreed_rate: Optional[float]
     avg_loadboard_rate_on_booked: Optional[float]
-    avg_margin_delta: Optional[float]   # agreed - loadboard on booked loads
+    avg_margin_delta: Optional[float]
     not_eligible_count: int
