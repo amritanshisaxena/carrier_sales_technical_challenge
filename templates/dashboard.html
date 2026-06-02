@@ -178,13 +178,13 @@
         {% for c in calls %}
         <tr>
           <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.created_at }}</td>
-          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.mc_number or "&mdash;" }}</td>
-          <td class="px-3 py-2.5 border-b border-line text-[12.5px]">{{ c.carrier_name or "&mdash;" }}</td>
-          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.load_id or "&mdash;" }}</td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.mc_number or "—" }}</td>
+          <td class="px-3 py-2.5 border-b border-line text-[12.5px]">{{ c.carrier_name or "—" }}</td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.load_id or "—" }}</td>
           <td class="px-3 py-2.5 border-b border-line"><span class="pill {{ c.outcome }}">{{ c.outcome.replace("_"," ") }}</span></td>
-          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{% if c.agreed_rate %}${{ c.agreed_rate | round(0) | int }}{% else %}&mdash;{% endif %}</td>
-          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.negotiation_rounds if c.negotiation_rounds is not none else "&mdash;" }}</td>
-          <td class="px-3 py-2.5 border-b border-line"><span class="pill {{ c.sentiment or 'neutral' }}">{{ c.sentiment or "&mdash;" }}</span></td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{% if c.agreed_rate %}${{ c.agreed_rate | round(0) | int }}{% else %}—{% endif %}</td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.negotiation_rounds if c.negotiation_rounds is not none else "—" }}</td>
+          <td class="px-3 py-2.5 border-b border-line"><span class="pill {{ c.sentiment or 'neutral' }}">{{ c.sentiment or "—" }}</span></td>
         </tr>
         {% endfor %}
       </tbody>
