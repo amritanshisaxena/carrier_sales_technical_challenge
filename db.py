@@ -1,5 +1,6 @@
 import json
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
@@ -8,10 +9,8 @@ from config import settings
 SEED_FILE = Path(__file__).parent / "loads.json"
 
 
-def get_conn() -> sqlite3.Connection:
-    conn = sqlite3.connect(settings.database_path)
-    conn.row_factory = sqlite3.Row
-    return conn
+def get_conn():
+    return psycopg2.connect(settings.database_url)
 
 
 def init_db() -> None:
@@ -41,7 +40,7 @@ def init_db() -> None:
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS calls (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             mc_number TEXT,
             carrier_name TEXT,
             load_id TEXT,
@@ -51,7 +50,7 @@ def init_db() -> None:
             negotiation_rounds INTEGER,
             sentiment TEXT,
             transcript TEXT,
-            created_at TEXT DEFAULT (datetime('now'))
+            created_at TIMESTAMP DEFAULT NOW()
         )
         """
     )
@@ -61,11 +60,11 @@ def init_db() -> None:
     conn.close()
 
 
-def _seed_loads(conn: sqlite3.Connection) -> None:
+def _seed_loads(conn) -> None:
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) AS c FROM loads")
-    if cur.fetchone()["c"] > 0:
-        return  # already seeded
+    cur.execute("SELECT COUNT(*) FROM loads")
+    if cur.fetchone()[0] > 0:
+        return
 
     loads = json.loads(SEED_FILE.read_text())
     for ld in loads:
@@ -74,9 +73,9 @@ def _seed_loads(conn: sqlite3.Connection) -> None:
             INSERT INTO loads (load_id, origin, destination, pickup_datetime,
                 delivery_datetime, equipment_type, loadboard_rate, notes, weight,
                 commodity_type, num_of_pieces, miles, dimensions)
-            VALUES (:load_id, :origin, :destination, :pickup_datetime,
-                :delivery_datetime, :equipment_type, :loadboard_rate, :notes, :weight,
-                :commodity_type, :num_of_pieces, :miles, :dimensions)
+            VALUES (%(load_id)s, %(origin)s, %(destination)s, %(pickup_datetime)s,
+                %(delivery_datetime)s, %(equipment_type)s, %(loadboard_rate)s, %(notes)s,
+                %(weight)s, %(commodity_type)s, %(num_of_pieces)s, %(miles)s, %(dimensions)s)
             """,
             ld,
         )
@@ -90,18 +89,17 @@ def search_loads(
     destination: Optional[str] = None,
     equipment_type: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Case-insensitive partial match on the fields a carrier would mention."""
     conn = get_conn()
-    cur = conn.cursor()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     clauses, params = [], []
     if origin:
-        clauses.append("LOWER(origin) LIKE ?")
+        clauses.append("LOWER(origin) LIKE %s")
         params.append(f"%{origin.lower()}%")
     if destination:
-        clauses.append("LOWER(destination) LIKE ?")
+        clauses.append("LOWER(destination) LIKE %s")
         params.append(f"%{destination.lower()}%")
     if equipment_type:
-        clauses.append("LOWER(equipment_type) LIKE ?")
+        clauses.append("LOWER(equipment_type) LIKE %s")
         params.append(f"%{equipment_type.lower()}%")
     where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
     cur.execute(f"SELECT * FROM loads{where} ORDER BY loadboard_rate DESC", params)
@@ -119,22 +117,28 @@ def insert_call(record: Dict[str, Any]) -> int:
         """
         INSERT INTO calls (mc_number, carrier_name, load_id, outcome, agreed_rate,
             loadboard_rate, negotiation_rounds, sentiment, transcript)
-        VALUES (:mc_number, :carrier_name, :load_id, :outcome, :agreed_rate,
-            :loadboard_rate, :negotiation_rounds, :sentiment, :transcript)
+        VALUES (%(mc_number)s, %(carrier_name)s, %(load_id)s, %(outcome)s, %(agreed_rate)s,
+            %(loadboard_rate)s, %(negotiation_rounds)s, %(sentiment)s, %(transcript)s)
+        RETURNING id
         """,
         record,
     )
+    call_id = cur.fetchone()[0]
     conn.commit()
-    call_id = cur.lastrowid
     conn.close()
     return call_id
 
 
 def fetch_calls() -> List[Dict[str, Any]]:
     conn = get_conn()
-    cur = conn.cursor()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("SELECT * FROM calls ORDER BY created_at DESC")
-    rows = [dict(r) for r in cur.fetchall()]
+    rows = []
+    for r in cur.fetchall():
+        row = dict(r)
+        if row.get("created_at"):
+            row["created_at"] = str(row["created_at"])
+        rows.append(row)
     conn.close()
     return rows
 
