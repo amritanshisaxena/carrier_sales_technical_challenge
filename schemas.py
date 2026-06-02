@@ -19,6 +19,7 @@ class Load(BaseModel):
 
 
 class CallRecord(BaseModel):
+    run_id: Optional[str] = None
     mc_number: Optional[str] = None
     carrier_name: Optional[str] = None
     load_id: Optional[str] = None

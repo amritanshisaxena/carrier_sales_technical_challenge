@@ -6,6 +6,8 @@ class Settings(BaseSettings):
 
     api_key: str = "dev-secret-key-change-me"
     database_url: str = ""
+    happyrobot_api_key: str = ""
+    happyrobot_use_case_id: str = ""
 
 
 settings = Settings()

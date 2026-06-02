@@ -106,9 +106,16 @@
     </div>
     <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
       <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Agreed Rate</div>
-      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_agreed_rate is not none %}${{ metrics.avg_agreed_rate | round(0) | int }}{% else %}&mdash;{% endif %}</div>
+      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_agreed_rate is not none %}${{ metrics.avg_agreed_rate | round(0) | int }}{% else %}—{% endif %}</div>
       <div class="text-[11.5px] text-ink-soft mt-2 font-mono">on booked loads</div>
     </div>
+    {% if hr_data and hr_data.avg_duration_display %}
+    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Call Duration</div>
+      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{{ hr_data.avg_duration_display }}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">from HappyRobot platform</div>
+    </div>
+    {% endif %}
   </div>
 
   <!-- Breakdown -->
@@ -130,9 +137,9 @@
   <div class="section-label">Trends & Patterns</div>
   <div class="grid grid-cols-2 max-md:grid-cols-1 gap-5 mb-9">
     <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
-      <h3 class="text-[13px] font-semibold mb-1">Bookings Per Day</h3>
-      <div class="text-[11.5px] text-ink-soft mb-4">Daily booked calls &mdash; last 7 days</div>
-      <div class="chart-box"><canvas id="bookingsPerDayChart"></canvas></div>
+      <h3 class="text-[13px] font-semibold mb-1">Runs Over Time</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Daily call volume — last 7 days (HappyRobot)</div>
+      <div class="chart-box"><canvas id="runsOverTimeChart"></canvas></div>
     </div>
     <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
       <h3 class="text-[13px] font-semibold mb-1">Why Calls Didn't Book</h3>
@@ -172,6 +179,8 @@
           <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Agreed</th>
           <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Rounds</th>
           <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Sentiment</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Duration</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Status</th>
         </tr>
       </thead>
       <tbody>
@@ -185,6 +194,8 @@
           <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{% if c.agreed_rate %}${{ c.agreed_rate | round(0) | int }}{% else %}—{% endif %}</td>
           <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.negotiation_rounds if c.negotiation_rounds is not none else "—" }}</td>
           <td class="px-3 py-2.5 border-b border-line"><span class="pill {{ c.sentiment or 'neutral' }}">{{ c.sentiment or "—" }}</span></td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.duration or "—" }}</td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.run_status or "—" }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -199,6 +210,7 @@
 <script>
   const METRICS = {{ metrics | tojson }};
   const DASHBOARD_DATA = {{ dashboard_data | tojson }};
+  const HR_DATA = {{ {"runs_per_day": hr_data.runs_per_day, "total_runs": hr_data.total_runs, "avg_duration_display": hr_data.avg_duration_display} | tojson if hr_data else '{}' }};
   const soft = '#56607a';
   const palette = {
     booked:'#2f7d52', no_agreement:'#c2680c', declined:'#b3261e', not_eligible:'#9aa3b8',
@@ -229,13 +241,13 @@
   doughnut('outcomeChart', METRICS.outcomes || {});
   doughnut('sentimentChart', METRICS.sentiment || {});
 
-  // Chart 1: Bookings Per Day
+  // Chart 1: Runs Over Time (from HappyRobot API)
   (function() {
-    const d = DASHBOARD_DATA.bookings_per_day;
-    if (!d || !d.values.some(v => v > 0)) { noData('bookingsPerDayChart'); return; }
-    new Chart(document.getElementById('bookingsPerDayChart'), {
+    const d = HR_DATA.runs_per_day;
+    if (!d || !d.values || !d.values.some(v => v > 0)) { noData('runsOverTimeChart'); return; }
+    new Chart(document.getElementById('runsOverTimeChart'), {
       type: 'bar',
-      data: { labels: d.labels, datasets: [{ label: 'Bookings', data: d.values, backgroundColor: '#2f7d52', borderRadius: 6, maxBarThickness: 40 }] },
+      data: { labels: d.labels, datasets: [{ label: 'Runs', data: d.values, backgroundColor: '#d97316', borderRadius: 6, maxBarThickness: 40 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
         scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { grid: { display: false } } } }
     });

@@ -42,6 +42,7 @@ def init_db() -> None:
         """
         CREATE TABLE IF NOT EXISTS calls (
             id SERIAL PRIMARY KEY,
+            run_id TEXT,
             mc_number TEXT,
             carrier_name TEXT,
             load_id TEXT,
@@ -145,9 +146,9 @@ def insert_call(record: Dict[str, Any]) -> int:
     cur = conn.cursor()
     cur.execute(
         """
-        INSERT INTO calls (mc_number, carrier_name, load_id, outcome, agreed_rate,
+        INSERT INTO calls (run_id, mc_number, carrier_name, load_id, outcome, agreed_rate,
             loadboard_rate, negotiation_rounds, sentiment, transcript)
-        VALUES (%(mc_number)s, %(carrier_name)s, %(load_id)s, %(outcome)s, %(agreed_rate)s,
+        VALUES (%(run_id)s, %(mc_number)s, %(carrier_name)s, %(load_id)s, %(outcome)s, %(agreed_rate)s,
             %(loadboard_rate)s, %(negotiation_rounds)s, %(sentiment)s, %(transcript)s)
         RETURNING id
         """,
