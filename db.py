@@ -82,6 +82,31 @@ def _seed_loads(conn) -> None:
     conn.commit()
 
 
+STATE_ABBREVS = {
+    "alabama": "al", "alaska": "ak", "arizona": "az", "arkansas": "ar",
+    "california": "ca", "colorado": "co", "connecticut": "ct", "delaware": "de",
+    "florida": "fl", "georgia": "ga", "hawaii": "hi", "idaho": "id",
+    "illinois": "il", "indiana": "in", "iowa": "ia", "kansas": "ks",
+    "kentucky": "ky", "louisiana": "la", "maine": "me", "maryland": "md",
+    "massachusetts": "ma", "michigan": "mi", "minnesota": "mn", "mississippi": "ms",
+    "missouri": "mo", "montana": "mt", "nebraska": "ne", "nevada": "nv",
+    "new hampshire": "nh", "new jersey": "nj", "new mexico": "nm", "new york": "ny",
+    "north carolina": "nc", "north dakota": "nd", "ohio": "oh", "oklahoma": "ok",
+    "oregon": "or", "pennsylvania": "pa", "rhode island": "ri", "south carolina": "sc",
+    "south dakota": "sd", "tennessee": "tn", "texas": "tx", "utah": "ut",
+    "vermont": "vt", "virginia": "va", "washington": "wa", "west virginia": "wv",
+    "wisconsin": "wi", "wyoming": "wy",
+}
+
+
+def _expand_location(term: str) -> list[str]:
+    low = term.lower().strip()
+    variants = [f"%{low}%"]
+    if low in STATE_ABBREVS:
+        variants.append(f"%, {STATE_ABBREVS[low]}")
+    return variants
+
+
 # ---------- Loads ----------
 
 def search_loads(
@@ -93,11 +118,15 @@ def search_loads(
     cur = conn.cursor(cursor_factory=RealDictCursor)
     clauses, params = [], []
     if origin:
-        clauses.append("LOWER(origin) LIKE %s")
-        params.append(f"%{origin.lower()}%")
+        variants = _expand_location(origin)
+        sub = " OR ".join(["LOWER(origin) LIKE %s"] * len(variants))
+        clauses.append(f"({sub})")
+        params.extend(variants)
     if destination:
-        clauses.append("LOWER(destination) LIKE %s")
-        params.append(f"%{destination.lower()}%")
+        variants = _expand_location(destination)
+        sub = " OR ".join(["LOWER(destination) LIKE %s"] * len(variants))
+        clauses.append(f"({sub})")
+        params.extend(variants)
     if equipment_type:
         clauses.append("LOWER(equipment_type) LIKE %s")
         params.append(f"%{equipment_type.lower()}%")
