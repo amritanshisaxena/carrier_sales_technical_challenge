@@ -2,6 +2,7 @@ import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from pathlib import Path
+from datetime import date, timedelta
 from typing import Optional, List, Dict, Any
 
 from config import settings
@@ -206,4 +207,129 @@ def compute_metrics() -> Dict[str, Any]:
         "avg_loadboard_rate_on_booked": avg(loadboard_on_booked),
         "avg_margin_delta": avg(margin_deltas),
         "not_eligible_count": outcomes.get("not_eligible", 0),
+    }
+
+
+def compute_dashboard_data() -> Dict[str, Any]:
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    # 1. Bookings per day (last 7 days)
+    today = date.today()
+    week_ago = today - timedelta(days=6)
+    cur.execute(
+        """
+        SELECT DATE(created_at) AS day, COUNT(*) AS cnt
+        FROM calls
+        WHERE outcome = 'booked' AND created_at >= %s
+        GROUP BY DATE(created_at)
+        ORDER BY day
+        """,
+        (week_ago,),
+    )
+    day_counts = {str(r["day"]): r["cnt"] for r in cur.fetchall()}
+    labels, values = [], []
+    for i in range(7):
+        d = week_ago + timedelta(days=i)
+        labels.append(d.strftime("%b %d"))
+        values.append(day_counts.get(str(d), 0))
+    bookings_per_day = {"labels": labels, "values": values}
+
+    # 2. Non-booked reasons
+    cur.execute(
+        """
+        SELECT outcome, COUNT(*) AS cnt
+        FROM calls
+        WHERE outcome != 'booked'
+        GROUP BY outcome
+        """
+    )
+    non_booked_reasons = {r["outcome"]: r["cnt"] for r in cur.fetchall()}
+
+    # 3. Pickup time patterns (booked vs not booked) — bucketed by time of day
+    cur.execute(
+        """
+        SELECT
+            CASE
+                WHEN EXTRACT(HOUR FROM l.pickup_datetime::timestamp) BETWEEN 6 AND 11 THEN 'Morning'
+                WHEN EXTRACT(HOUR FROM l.pickup_datetime::timestamp) BETWEEN 12 AND 17 THEN 'Afternoon'
+                WHEN EXTRACT(HOUR FROM l.pickup_datetime::timestamp) BETWEEN 18 AND 23 THEN 'Evening'
+                ELSE 'Night'
+            END AS time_bucket,
+            c.outcome,
+            COUNT(*) AS cnt
+        FROM calls c
+        JOIN loads l ON c.load_id = l.load_id
+        WHERE c.load_id IS NOT NULL
+        GROUP BY time_bucket, c.outcome
+        """
+    )
+    bucket_order = ["Morning", "Afternoon", "Evening", "Night"]
+    bucket_booked = {b: 0 for b in bucket_order}
+    bucket_not_booked = {b: 0 for b in bucket_order}
+    for r in cur.fetchall():
+        b = r["time_bucket"]
+        if r["outcome"] == "booked":
+            bucket_booked[b] += r["cnt"]
+        else:
+            bucket_not_booked[b] += r["cnt"]
+    pickup_time_patterns = {
+        "labels": bucket_order,
+        "booked": [bucket_booked[b] for b in bucket_order],
+        "not_booked": [bucket_not_booked[b] for b in bucket_order],
+    }
+
+    # 4. Equipment type distribution
+    cur.execute(
+        """
+        SELECT
+            l.equipment_type,
+            SUM(CASE WHEN c.outcome = 'booked' THEN 1 ELSE 0 END) AS booked,
+            SUM(CASE WHEN c.outcome != 'booked' THEN 1 ELSE 0 END) AS not_booked
+        FROM calls c
+        JOIN loads l ON c.load_id = l.load_id
+        WHERE c.load_id IS NOT NULL
+        GROUP BY l.equipment_type
+        ORDER BY booked DESC
+        """
+    )
+    eq_labels, eq_booked, eq_not_booked = [], [], []
+    for r in cur.fetchall():
+        eq_labels.append(r["equipment_type"])
+        eq_booked.append(r["booked"])
+        eq_not_booked.append(r["not_booked"])
+    equipment_distribution = {
+        "labels": eq_labels,
+        "booked": eq_booked,
+        "not_booked": eq_not_booked,
+    }
+
+    # 5. Distance vs booking (scatter data)
+    cur.execute(
+        """
+        SELECT l.miles, c.outcome, c.agreed_rate, l.loadboard_rate
+        FROM calls c
+        JOIN loads l ON c.load_id = l.load_id
+        WHERE c.load_id IS NOT NULL AND l.miles IS NOT NULL
+        """
+    )
+    scatter_booked, scatter_not_booked = [], []
+    for r in cur.fetchall():
+        rate = r["agreed_rate"] if r["outcome"] == "booked" and r["agreed_rate"] else r["loadboard_rate"]
+        if rate is None:
+            continue
+        point = {"x": float(r["miles"]), "y": float(rate)}
+        if r["outcome"] == "booked":
+            scatter_booked.append(point)
+        else:
+            scatter_not_booked.append(point)
+    distance_booking = {"booked": scatter_booked, "not_booked": scatter_not_booked}
+
+    conn.close()
+    return {
+        "bookings_per_day": bookings_per_day,
+        "non_booked_reasons": non_booked_reasons,
+        "pickup_time_patterns": pickup_time_patterns,
+        "equipment_distribution": equipment_distribution,
+        "distance_booking": distance_booking,
     }

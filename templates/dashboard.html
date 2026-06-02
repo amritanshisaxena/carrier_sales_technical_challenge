@@ -8,178 +8,198 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<style>
-  :root{
-    --paper:#f4f1ea; --card:#fffdf8; --ink:#14213d; --ink-soft:#56607a;
-    --accent:#d97316; --line:#ddd6c8; --good:#2f7d52; --warn:#c2680c; --bad:#b3261e;
-    --shadow:0 1px 2px rgba(20,33,61,.06),0 8px 24px rgba(20,33,61,.05);
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          paper: '#f4f1ea', card: '#fffdf8', ink: '#14213d',
+          'ink-soft': '#56607a', accent: '#d97316', line: '#ddd6c8',
+          good: '#2f7d52', warn: '#c2680c', bad: '#b3261e',
+        },
+        fontFamily: {
+          sans: ['IBM Plex Sans', 'sans-serif'],
+          mono: ['IBM Plex Mono', 'monospace'],
+        }
+      }
+    },
+    corePlugins: { preflight: false }
   }
+</script>
+<style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{
-    background:var(--paper);color:var(--ink);
+    background:#f4f1ea;color:#14213d;
     font-family:'IBM Plex Sans',sans-serif;
     line-height:1.45;-webkit-font-smoothing:antialiased;
     background-image:radial-gradient(circle at 1px 1px,rgba(20,33,61,.04) 1px,transparent 0);
     background-size:22px 22px;
     padding:0 0 64px;
   }
-  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-  header{
-    border-bottom:2px solid var(--ink);margin-bottom:32px;
-    padding:28px 0 18px;
-  }
-  .top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
-  .brand{display:flex;align-items:center;gap:14px}
-  .mark{
-    width:38px;height:38px;border:2px solid var(--ink);border-radius:7px;
-    display:grid;place-items:center;font-weight:700;font-size:18px;
-    background:var(--ink);color:var(--paper);
-  }
-  h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
-  .sub{font-size:12.5px;color:var(--ink-soft);font-weight:500;text-transform:uppercase;letter-spacing:.08em}
-  .live{
-    display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
-    color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;
-  }
-  .dot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px rgba(47,125,82,.15)}
-
-  .section-label{
-    font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
-    color:var(--ink-soft);margin:0 0 14px;display:flex;align-items:center;gap:10px;
-  }
-  .section-label::after{content:"";flex:1;height:1px;background:var(--line)}
-
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:36px}
-  .kpi{
-    background:var(--card);border:1px solid var(--line);border-radius:12px;
-    padding:18px 18px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden;
-    opacity:0;transform:translateY(8px);animation:rise .5s ease forwards;
-  }
-  .kpi::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:var(--accent)}
+  .kpi{opacity:0;transform:translateY(8px);animation:rise .5s ease forwards}
   .kpi:nth-child(1){animation-delay:.04s}.kpi:nth-child(2){animation-delay:.10s}
   .kpi:nth-child(3){animation-delay:.16s}.kpi:nth-child(4){animation-delay:.22s}
-  .kpi:nth-child(5){animation-delay:.28s}
-  .kpi .label{font-size:11.5px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
-  .kpi .val{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1}
-  .kpi .unit{font-size:14px;color:var(--ink-soft);font-weight:500}
-  .kpi .foot{font-size:11.5px;color:var(--ink-soft);margin-top:8px;font-family:'IBM Plex Mono',monospace}
-
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:36px}
-  .panel{
-    background:var(--card);border:1px solid var(--line);border-radius:12px;
-    padding:20px;box-shadow:var(--shadow);
-  }
-  .panel h3{font-size:13px;font-weight:600;margin-bottom:4px}
-  .panel .hint{font-size:11.5px;color:var(--ink-soft);margin-bottom:16px}
-  .chart-box{position:relative;height:230px}
-
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{
-    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
-    color:var(--ink-soft);font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--line);
-  }
-  td{padding:11px 12px;border-bottom:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:12.5px}
-  tr:last-child td{border-bottom:none}
+  .kpi:nth-child(5){animation-delay:.28s}.kpi:nth-child(6){animation-delay:.34s}
+  .kpi::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:#d97316}
   .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Sans',sans-serif}
-  .pill.booked{background:rgba(47,125,82,.12);color:var(--good)}
-  .pill.no_agreement{background:rgba(194,104,12,.12);color:var(--warn)}
-  .pill.declined{background:rgba(179,38,30,.10);color:var(--bad)}
-  .pill.not_eligible{background:rgba(86,96,122,.12);color:var(--ink-soft)}
-  .pill.positive{color:var(--good)}.pill.neutral{color:var(--ink-soft)}.pill.negative{color:var(--bad)}
-  .empty{text-align:center;color:var(--ink-soft);padding:40px;font-size:13px}
+  .pill.booked{background:rgba(47,125,82,.12);color:#2f7d52}
+  .pill.no_agreement{background:rgba(194,104,12,.12);color:#c2680c}
+  .pill.declined{background:rgba(179,38,30,.10);color:#b3261e}
+  .pill.not_eligible{background:rgba(86,96,122,.12);color:#56607a}
+  .pill.positive{color:#2f7d52}.pill.neutral{color:#56607a}.pill.negative{color:#b3261e}
+  .chart-box{position:relative;height:230px}
+  .section-label{
+    font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
+    color:#56607a;margin:0 0 14px;display:flex;align-items:center;gap:10px;
+  }
+  .section-label::after{content:"";flex:1;height:1px;background:#ddd6c8}
   @keyframes rise{to{opacity:1;transform:none}}
-  @media(max-width:880px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="top">
-      <div class="brand">
-        <div class="mark">A</div>
+<div class="max-w-6xl mx-auto px-6">
+
+  <!-- Header -->
+  <header class="border-b-2 border-ink mb-8 pt-7 pb-4">
+    <div class="flex justify-between items-end flex-wrap gap-3">
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 border-2 border-ink rounded-lg grid place-items-center font-bold text-lg bg-ink text-paper">A</div>
         <div>
-          <h1>Acme Logistics · Inbound Carrier Desk</h1>
-          <div class="sub">AI Carrier Sales — Live Operations</div>
+          <h1 class="text-xl font-bold tracking-tight">Acme Logistics · Inbound Carrier Desk</h1>
+          <div class="text-xs text-ink-soft font-medium uppercase tracking-widest">AI Carrier Sales — Live Operations</div>
         </div>
       </div>
-      <div class="live"><span class="dot"></span> LIVE · auto-captured from calls</div>
+      <div class="flex items-center gap-2 text-xs font-semibold text-ink-soft font-mono">
+        <span class="w-2.5 h-2.5 rounded-full bg-good shadow-[0_0_0_4px_rgba(47,125,82,.15)]"></span> LIVE · auto-captured from calls
+      </div>
     </div>
   </header>
 
+  <!-- KPIs -->
   <div class="section-label">Operations Snapshot</div>
-  <div class="kpis">
-    <div class="kpi">
-      <div class="label">Total Calls</div>
-      <div class="val">{{ metrics.total_calls }}</div>
-      <div class="foot">inbound carrier calls</div>
+  <div class="grid grid-cols-3 max-md:grid-cols-2 gap-3.5 mb-9">
+    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Total Calls</div>
+      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{{ metrics.total_calls }}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">inbound carrier calls</div>
     </div>
-    <div class="kpi">
-      <div class="label">Booking Rate</div>
-      <div class="val">{{ (metrics.booking_rate * 100) | round(1) }}<span class="unit">%</span></div>
-      <div class="foot">calls → booked loads</div>
+    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Booking Rate</div>
+      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{{ (metrics.booking_rate * 100) | round(1) }}<span class="text-sm text-ink-soft font-medium">%</span></div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">calls &rarr; booked loads</div>
     </div>
-    <div class="kpi">
-      <div class="label">Avg Margin Δ</div>
-      <div class="val">{% if metrics.avg_margin_delta is not none %}${{ metrics.avg_margin_delta | round(0) | int }}{% else %}—{% endif %}</div>
-      <div class="foot">agreed vs loadboard</div>
+    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Margin &Delta;</div>
+      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_margin_delta is not none %}${{ metrics.avg_margin_delta | round(0) | int }}{% else %}&mdash;{% endif %}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">agreed vs loadboard</div>
     </div>
-    <div class="kpi">
-      <div class="label">Avg Rounds</div>
-      <div class="val">{% if metrics.avg_negotiation_rounds is not none %}{{ metrics.avg_negotiation_rounds }}{% else %}—{% endif %}</div>
-      <div class="foot">to reach a decision</div>
+    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Rounds</div>
+      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_negotiation_rounds is not none %}{{ metrics.avg_negotiation_rounds }}{% else %}&mdash;{% endif %}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">to reach a decision</div>
     </div>
-    <div class="kpi">
-      <div class="label">FMCSA Rejected</div>
-      <div class="val">{{ metrics.not_eligible_count }}</div>
-      <div class="foot">ineligible carriers</div>
+    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">FMCSA Rejected</div>
+      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{{ metrics.not_eligible_count }}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">ineligible carriers</div>
+    </div>
+    <div class="kpi bg-card border border-line rounded-xl p-4 shadow-sm relative overflow-hidden">
+      <div class="text-[11.5px] text-ink-soft font-semibold uppercase tracking-wide mb-2.5">Avg Agreed Rate</div>
+      <div class="font-mono text-3xl font-semibold tracking-tight leading-none">{% if metrics.avg_agreed_rate is not none %}${{ metrics.avg_agreed_rate | round(0) | int }}{% else %}&mdash;{% endif %}</div>
+      <div class="text-[11.5px] text-ink-soft mt-2 font-mono">on booked loads</div>
     </div>
   </div>
 
+  <!-- Breakdown -->
   <div class="section-label">Breakdown</div>
-  <div class="grid">
-    <div class="panel">
-      <h3>Call Outcomes</h3>
-      <div class="hint">Where each inbound call landed</div>
+  <div class="grid grid-cols-2 max-md:grid-cols-1 gap-5 mb-9">
+    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+      <h3 class="text-[13px] font-semibold mb-1">Call Outcomes</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Where each inbound call landed</div>
       <div class="chart-box"><canvas id="outcomeChart"></canvas></div>
     </div>
-    <div class="panel">
-      <h3>Carrier Sentiment</h3>
-      <div class="hint">Tone of carriers across all calls</div>
+    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+      <h3 class="text-[13px] font-semibold mb-1">Carrier Sentiment</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Tone of carriers across all calls</div>
       <div class="chart-box"><canvas id="sentimentChart"></canvas></div>
     </div>
   </div>
 
+  <!-- Trends & Patterns -->
+  <div class="section-label">Trends & Patterns</div>
+  <div class="grid grid-cols-2 max-md:grid-cols-1 gap-5 mb-9">
+    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+      <h3 class="text-[13px] font-semibold mb-1">Bookings Per Day</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Daily booked calls &mdash; last 7 days</div>
+      <div class="chart-box"><canvas id="bookingsPerDayChart"></canvas></div>
+    </div>
+    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+      <h3 class="text-[13px] font-semibold mb-1">Why Calls Didn't Book</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Breakdown of non-booked outcomes</div>
+      <div class="chart-box"><canvas id="nonBookedChart"></canvas></div>
+    </div>
+    <div class="bg-card border border-line rounded-xl p-5 shadow-sm col-span-2 max-md:col-span-1">
+      <h3 class="text-[13px] font-semibold mb-1">Pickup Time Patterns</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Booking outcome by time of day (Morning 6-11, Afternoon 12-17, Evening 18-23, Night 0-5)</div>
+      <div class="chart-box" style="height:280px"><canvas id="pickupTimeChart"></canvas></div>
+    </div>
+    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+      <h3 class="text-[13px] font-semibold mb-1">Equipment Type Bookings</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Booking success by equipment type</div>
+      <div class="chart-box"><canvas id="equipmentChart"></canvas></div>
+    </div>
+    <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
+      <h3 class="text-[13px] font-semibold mb-1">Distance vs Rate</h3>
+      <div class="text-[11.5px] text-ink-soft mb-4">Does distance affect booking?</div>
+      <div class="chart-box"><canvas id="distanceChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Recent Calls -->
   <div class="section-label">Recent Calls</div>
-  <div class="panel">
+  <div class="bg-card border border-line rounded-xl p-5 shadow-sm">
     {% if calls %}
-    <table>
+    <div class="overflow-x-auto">
+    <table class="w-full border-collapse text-[13px]">
       <thead>
-        <tr><th>Time</th><th>MC #</th><th>Carrier</th><th>Load</th><th>Outcome</th><th>Agreed</th><th>Rounds</th><th>Sentiment</th></tr>
+        <tr>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Time</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">MC #</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Carrier</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Load</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Outcome</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Agreed</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Rounds</th>
+          <th class="text-left text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Sentiment</th>
+        </tr>
       </thead>
       <tbody>
         {% for c in calls %}
         <tr>
-          <td>{{ c.created_at }}</td>
-          <td>{{ c.mc_number or "—" }}</td>
-          <td style="font-family:'IBM Plex Sans',sans-serif">{{ c.carrier_name or "—" }}</td>
-          <td>{{ c.load_id or "—" }}</td>
-          <td><span class="pill {{ c.outcome }}">{{ c.outcome.replace("_"," ") }}</span></td>
-          <td>{% if c.agreed_rate %}${{ c.agreed_rate | round(0) | int }}{% else %}—{% endif %}</td>
-          <td>{{ c.negotiation_rounds if c.negotiation_rounds is not none else "—" }}</td>
-          <td><span class="pill {{ c.sentiment or 'neutral' }}">{{ c.sentiment or "—" }}</span></td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.created_at }}</td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.mc_number or "&mdash;" }}</td>
+          <td class="px-3 py-2.5 border-b border-line text-[12.5px]">{{ c.carrier_name or "&mdash;" }}</td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.load_id or "&mdash;" }}</td>
+          <td class="px-3 py-2.5 border-b border-line"><span class="pill {{ c.outcome }}">{{ c.outcome.replace("_"," ") }}</span></td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{% if c.agreed_rate %}${{ c.agreed_rate | round(0) | int }}{% else %}&mdash;{% endif %}</td>
+          <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.negotiation_rounds if c.negotiation_rounds is not none else "&mdash;" }}</td>
+          <td class="px-3 py-2.5 border-b border-line"><span class="pill {{ c.sentiment or 'neutral' }}">{{ c.sentiment or "&mdash;" }}</span></td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+    </div>
     {% else %}
-    <div class="empty">No calls captured yet. Place a test web call and they'll appear here automatically.</div>
+    <div class="text-center text-ink-soft py-10 text-[13px]">No calls captured yet. Place a test web call and they'll appear here automatically.</div>
     {% endif %}
   </div>
 </div>
 
 <script>
   const METRICS = {{ metrics | tojson }};
-  const ink = '#14213d', soft = '#56607a';
+  const DASHBOARD_DATA = {{ dashboard_data | tojson }};
+  const soft = '#56607a';
   const palette = {
     booked:'#2f7d52', no_agreement:'#c2680c', declined:'#b3261e', not_eligible:'#9aa3b8',
     positive:'#2f7d52', neutral:'#9aa3b8', negative:'#b3261e', unknown:'#c9c2b4'
@@ -188,20 +208,101 @@
   Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
   Chart.defaults.color = soft;
 
-  function doughnut(id, obj){
-    const keys = Object.keys(obj);
+  function noData(id) {
     const el = document.getElementById(id);
-    if(!keys.length){ el.parentElement.innerHTML = '<div class="empty">No data yet</div>'; return; }
-    new Chart(el, {
-      type:'doughnut',
-      data:{ labels: keys.map(labelize),
-        datasets:[{ data: keys.map(k=>obj[k]),
-          backgroundColor: keys.map(k=>palette[k]||'#c9c2b4'), borderColor:'#fffdf8', borderWidth:3 }]},
-      options:{ cutout:'62%', plugins:{ legend:{ position:'right', labels:{ boxWidth:12, padding:14, font:{size:12.5} } } } }
+    el.parentElement.innerHTML = '<div class="text-center text-ink-soft py-10 text-[13px]">No data yet</div>';
+  }
+
+  // Doughnut helper
+  function doughnut(id, obj) {
+    const keys = Object.keys(obj);
+    if (!keys.length) { noData(id); return; }
+    new Chart(document.getElementById(id), {
+      type: 'doughnut',
+      data: { labels: keys.map(labelize),
+        datasets: [{ data: keys.map(k => obj[k]),
+          backgroundColor: keys.map(k => palette[k] || '#c9c2b4'), borderColor: '#fffdf8', borderWidth: 3 }]},
+      options: { cutout: '62%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 14, font: { size: 12.5 } } } } }
     });
   }
+
   doughnut('outcomeChart', METRICS.outcomes || {});
   doughnut('sentimentChart', METRICS.sentiment || {});
+
+  // Chart 1: Bookings Per Day
+  (function() {
+    const d = DASHBOARD_DATA.bookings_per_day;
+    if (!d || !d.values.some(v => v > 0)) { noData('bookingsPerDayChart'); return; }
+    new Chart(document.getElementById('bookingsPerDayChart'), {
+      type: 'bar',
+      data: { labels: d.labels, datasets: [{ label: 'Bookings', data: d.values, backgroundColor: '#2f7d52', borderRadius: 6, maxBarThickness: 40 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { grid: { display: false } } } }
+    });
+  })();
+
+  // Chart 2: Non-Booked Reasons
+  (function() {
+    const d = DASHBOARD_DATA.non_booked_reasons;
+    const keys = Object.keys(d);
+    if (!keys.length) { noData('nonBookedChart'); return; }
+    new Chart(document.getElementById('nonBookedChart'), {
+      type: 'bar',
+      data: { labels: keys.map(labelize), datasets: [{ data: keys.map(k => d[k]),
+        backgroundColor: keys.map(k => palette[k] || '#c9c2b4'), borderRadius: 6, maxBarThickness: 32 }] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, y: { grid: { display: false } } } }
+    });
+  })();
+
+  // Chart 3: Pickup Time Patterns (bucketed)
+  (function() {
+    const d = DASHBOARD_DATA.pickup_time_patterns;
+    if (!d || (!d.booked.some(v => v > 0) && !d.not_booked.some(v => v > 0))) { noData('pickupTimeChart'); return; }
+    new Chart(document.getElementById('pickupTimeChart'), {
+      type: 'bar',
+      data: { labels: d.labels, datasets: [
+        { label: 'Booked', data: d.booked, backgroundColor: '#2f7d52', borderRadius: 6, maxBarThickness: 60 },
+        { label: 'Not Booked', data: d.not_booked, backgroundColor: 'rgba(179,38,30,0.5)', borderRadius: 6, maxBarThickness: 60 }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 14 } } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { grid: { display: false } } } }
+    });
+  })();
+
+  // Chart 4: Equipment Type Distribution
+  (function() {
+    const d = DASHBOARD_DATA.equipment_distribution;
+    if (!d || !d.labels.length) { noData('equipmentChart'); return; }
+    new Chart(document.getElementById('equipmentChart'), {
+      type: 'bar',
+      data: { labels: d.labels, datasets: [
+        { label: 'Booked', data: d.booked, backgroundColor: '#2f7d52', borderRadius: 4 },
+        { label: 'Not Booked', data: d.not_booked, backgroundColor: 'rgba(179,38,30,0.5)', borderRadius: 4 }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 14 } } },
+        scales: { y: { beginAtZero: true, stacked: true, ticks: { stepSize: 1, precision: 0 } }, x: { stacked: true, grid: { display: false } } } }
+    });
+  })();
+
+  // Chart 5: Distance vs Rate Scatter
+  (function() {
+    const d = DASHBOARD_DATA.distance_booking;
+    if (!d || (!d.booked.length && !d.not_booked.length)) { noData('distanceChart'); return; }
+    new Chart(document.getElementById('distanceChart'), {
+      type: 'scatter',
+      data: { datasets: [
+        { label: 'Booked', data: d.booked, backgroundColor: '#2f7d52', pointRadius: 7, pointHoverRadius: 10 },
+        { label: 'Not Booked', data: d.not_booked, backgroundColor: '#b3261e', pointRadius: 7, pointHoverRadius: 10, pointStyle: 'triangle' }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 14 } },
+          tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.x + ' mi, $' + ctx.parsed.y; } } } },
+        scales: { x: { title: { display: true, text: 'Miles' }, beginAtZero: true }, y: { title: { display: true, text: 'Rate ($)' }, beginAtZero: true } } }
+    });
+  })();
 </script>
 </body>
 </html>

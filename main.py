@@ -36,7 +36,11 @@ async def dashboard(request: Request):
     return templates.TemplateResponse(
         request,
         "dashboard.html",
-        {"metrics": db.compute_metrics(), "calls": db.fetch_calls()[:15]},
+        {
+            "metrics": db.compute_metrics(),
+            "calls": db.fetch_calls()[:15],
+            "dashboard_data": db.compute_dashboard_data(),
+        },
     )
 
 
