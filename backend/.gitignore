@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Secrets and local state — NEVER commit these
+.env
+data.db
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
