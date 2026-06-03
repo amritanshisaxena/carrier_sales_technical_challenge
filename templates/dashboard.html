@@ -45,11 +45,11 @@
   .kpi:nth-child(7){animation-delay:.40s}
   .kpi::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:#d97316}
   .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;white-space:nowrap}
-  .pill.booked{background:rgba(47,125,82,.12);color:#2f7d52}
-  .pill.no_agreement{background:rgba(194,104,12,.12);color:#c2680c}
-  .pill.declined{background:rgba(179,38,30,.10);color:#b3261e}
-  .pill.not_eligible{background:rgba(86,96,122,.12);color:#56607a}
-  .pill.positive{color:#2f7d52}.pill.neutral{color:#56607a}.pill.negative{color:#b3261e}
+  .pill.booked{background:rgba(37,99,235,.10);color:#2563eb}
+  .pill.no_agreement{background:rgba(245,158,11,.12);color:#d97706}
+  .pill.declined{background:rgba(239,68,68,.10);color:#ef4444}
+  .pill.not_eligible{background:rgba(139,92,246,.10);color:#7c3aed}
+  .pill.positive{color:#10b981}.pill.neutral{color:#6b7280}.pill.negative{color:#ef4444}
   .chart-box{position:relative;height:230px;min-height:200px}
   .section-label{
     font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
@@ -166,6 +166,7 @@
           <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Sentiment</th>
           <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Duration</th>
           <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Status</th>
+          <th class="text-[11px] uppercase tracking-wide text-ink-soft font-semibold px-3 pb-2.5 border-b border-line">Details</th>
         </tr>
       </thead>
       <tbody>
@@ -181,6 +182,7 @@
           <td class="px-3 py-2.5 border-b border-line"><span class="pill {{ c.sentiment or 'neutral' }}">{{ c.sentiment or "—" }}</span></td>
           <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.duration or "—" }}</td>
           <td class="px-3 py-2.5 border-b border-line font-mono text-[12.5px]">{{ c.run_status or "—" }}</td>
+          <td class="px-3 py-2.5 border-b border-line text-[12.5px]"><button onclick="showDetail({{ loop.index0 }})" class="inline-flex items-center gap-1 text-accent font-semibold hover:underline cursor-pointer bg-transparent border-0 p-0 text-[12.5px]">View <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg></button></td>
         </tr>
         {% endfor %}
       </tbody>
@@ -214,14 +216,28 @@
 
 </div>
 
+<!-- Detail Modal -->
+<div id="detailModal" class="fixed inset-0 z-50 hidden" style="background:rgba(20,33,61,.45);backdrop-filter:blur(4px)">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-card border border-line rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto" style="animation:rise .25s ease">
+      <div class="flex items-center justify-between px-6 pt-5 pb-3 border-b border-line">
+        <h3 class="text-[15px] font-bold">Call Details</h3>
+        <button onclick="closeDetail()" class="w-8 h-8 rounded-lg hover:bg-gray-100 grid place-items-center text-ink-soft text-lg bg-transparent border-0 cursor-pointer">&times;</button>
+      </div>
+      <div id="detailBody" class="px-6 py-4 space-y-3 text-[13px]"></div>
+    </div>
+  </div>
+</div>
+
 <script>
   const METRICS = {{ metrics | tojson }};
   const DASHBOARD_DATA = {{ dashboard_data | tojson }};
   const HR_DATA = {{ {"runs_per_day": hr_data.runs_per_day, "total_runs": hr_data.total_runs, "avg_duration_display": hr_data.avg_duration_display} | tojson if hr_data else '{}' }};
+  const CALLS = {{ calls | tojson }};
   const soft = '#56607a';
   const palette = {
-    booked:'#2f7d52', no_agreement:'#c2680c', declined:'#b3261e', not_eligible:'#9aa3b8',
-    positive:'#2f7d52', neutral:'#9aa3b8', negative:'#b3261e', unknown:'#c9c2b4'
+    booked:'#2563eb', no_agreement:'#f59e0b', declined:'#ef4444', not_eligible:'#8b5cf6',
+    positive:'#10b981', neutral:'#6b7280', negative:'#ef4444', unknown:'#d1d5db'
   };
   const labelize = k => k.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
   Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
@@ -253,7 +269,7 @@
     if (!d || !d.values || !d.values.some(v => v > 0)) { noData('runsOverTimeChart'); return; }
     new Chart(document.getElementById('runsOverTimeChart'), {
       type: 'bar',
-      data: { labels: d.labels, datasets: [{ label: 'Runs', data: d.values, backgroundColor: '#d97316', borderRadius: 6, maxBarThickness: 40 }] },
+      data: { labels: d.labels, datasets: [{ label: 'Runs', data: d.values, backgroundColor: '#6366f1', borderRadius: 6, maxBarThickness: 40 }] },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
         scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { grid: { display: false } } } }
     });
@@ -280,8 +296,8 @@
     new Chart(document.getElementById('pickupTimeChart'), {
       type: 'bar',
       data: { labels: d.labels, datasets: [
-        { label: 'Booked', data: d.booked, backgroundColor: '#2f7d52', borderRadius: 6, maxBarThickness: 60 },
-        { label: 'Not Booked', data: d.not_booked, backgroundColor: 'rgba(179,38,30,0.5)', borderRadius: 6, maxBarThickness: 60 }
+        { label: 'Booked', data: d.booked, backgroundColor: '#0ea5e9', borderRadius: 6, maxBarThickness: 60 },
+        { label: 'Not Booked', data: d.not_booked, backgroundColor: '#fbbf24', borderRadius: 6, maxBarThickness: 60 }
       ]},
       options: { responsive: true, maintainAspectRatio: false,
         plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 14 } } },
@@ -296,8 +312,8 @@
     new Chart(document.getElementById('equipmentChart'), {
       type: 'bar',
       data: { labels: d.labels, datasets: [
-        { label: 'Booked', data: d.booked, backgroundColor: '#2f7d52', borderRadius: 4 },
-        { label: 'Not Booked', data: d.not_booked, backgroundColor: 'rgba(179,38,30,0.5)', borderRadius: 4 }
+        { label: 'Booked', data: d.booked, backgroundColor: '#14b8a6', borderRadius: 4 },
+        { label: 'Not Booked', data: d.not_booked, backgroundColor: '#a78bfa', borderRadius: 4 }
       ]},
       options: { responsive: true, maintainAspectRatio: false,
         plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 14 } } },
@@ -312,8 +328,8 @@
     new Chart(document.getElementById('distanceChart'), {
       type: 'scatter',
       data: { datasets: [
-        { label: 'Booked', data: d.booked, backgroundColor: '#2f7d52', pointRadius: 7, pointHoverRadius: 10 },
-        { label: 'Not Booked', data: d.not_booked, backgroundColor: '#b3261e', pointRadius: 7, pointHoverRadius: 10, pointStyle: 'triangle' }
+        { label: 'Booked', data: d.booked, backgroundColor: '#2563eb', pointRadius: 7, pointHoverRadius: 10 },
+        { label: 'Not Booked', data: d.not_booked, backgroundColor: '#f97316', pointRadius: 7, pointHoverRadius: 10, pointStyle: 'triangle' }
       ]},
       options: { responsive: true, maintainAspectRatio: false,
         plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 14 } },
@@ -321,6 +337,48 @@
         scales: { x: { title: { display: true, text: 'Miles' }, beginAtZero: true }, y: { title: { display: true, text: 'Rate ($)' }, beginAtZero: true } } }
     });
   })();
+
+  // Detail modal
+  function showDetail(idx) {
+    const c = CALLS[idx];
+    if (!c) return;
+    const val = (v, prefix) => v != null && v !== '' ? (prefix || '') + v : '—';
+    const outcomeClass = c.outcome || '';
+    const sentClass = c.sentiment || 'neutral';
+    let rows = [
+      ['Run ID', `<span class="font-mono text-[11.5px]">${val(c.run_id)}</span>`],
+      ['Time', `<span class="font-mono">${val(c.created_at)}</span>`],
+      ['MC Number', `<span class="font-mono">${val(c.mc_number)}</span>`],
+      ['Carrier', val(c.carrier_name)],
+      ['Load ID', `<span class="font-mono">${val(c.load_id)}</span>`],
+      ['Outcome', `<span class="pill ${outcomeClass}">${(c.outcome||'—').replace(/_/g,' ')}</span>`],
+      ['Agreed Rate', val(c.agreed_rate != null ? '$' + Math.round(c.agreed_rate) : null)],
+      ['Loadboard Rate', val(c.loadboard_rate != null ? '$' + Math.round(c.loadboard_rate) : null)],
+      ['Negotiation Rounds', val(c.negotiation_rounds)],
+      ['Sentiment', `<span class="pill ${sentClass}">${val(c.sentiment)}</span>`],
+      ['Duration', val(c.duration)],
+      ['Status', val(c.run_status)],
+    ];
+    let html = '<div class="grid grid-cols-2 gap-x-6 gap-y-2.5">';
+    for (const [label, value] of rows) {
+      html += `<div class="text-ink-soft font-semibold text-[11.5px] uppercase tracking-wide">${label}</div><div>${value}</div>`;
+    }
+    html += '</div>';
+    if (c.transcript) {
+      html += `<div class="mt-4 pt-4 border-t border-line"><div class="text-ink-soft font-semibold text-[11.5px] uppercase tracking-wide mb-2">Transcript</div><div class="bg-paper rounded-lg p-3 text-[12.5px] leading-relaxed max-h-48 overflow-y-auto font-mono whitespace-pre-wrap">${c.transcript.replace(/</g,'&lt;')}</div></div>`;
+    }
+    document.getElementById('detailBody').innerHTML = html;
+    document.getElementById('detailModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDetail() {
+    document.getElementById('detailModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('detailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDetail();
+  });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDetail(); });
 </script>
 </body>
 </html>

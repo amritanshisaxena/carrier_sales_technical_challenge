@@ -117,6 +117,7 @@ async def dashboard(request: Request):
             "calls": calls,
             "dashboard_data": db.compute_dashboard_data(),
             "hr_data": hr_data,
+            "hr_use_case_id": settings.happyrobot_use_case_id or "",
         },
     )
 
