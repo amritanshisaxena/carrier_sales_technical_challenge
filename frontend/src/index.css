@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: #f4f1ea;
+  color: #14213d;
+  font-family: 'IBM Plex Sans', sans-serif;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(circle at 1px 1px, rgba(20,33,61,.04) 1px, transparent 0);
+  background-size: 22px 22px;
+  padding: 0 0 64px;
+  min-width: 320px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.kpi {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: rise 0.5s ease forwards;
+}
+
+.panel {
+  background: #fffdf8;
+  border: 1px solid #ddd6c8;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(20,33,61,.06), 0 8px 24px rgba(20,33,61,.05);
+}
+
+.section-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #56607a;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #ddd6c8;
+}
